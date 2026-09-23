@@ -6,7 +6,8 @@ Functional information about how the tool is intended to work, as opposed to how
 
 ### Records table
 
-- **Read-only columns:** key, enteredby, entered_to_bulk_date and uuid are static text, shown together on the left of the table (in that order, before status). Clicking a key number does nothing.
+- **Frozen header row:** the table doesn't scroll in its own box; the whole page scrolls. Once the column headers reach the top of the screen, they stay pinned there while the rows and footer scroll underneath. The pinned headers can still be clicked to sort or select all.
+- **Read-only columns:** key and entered_to_bulk_date are static text. Clicking a key number does nothing.
 - **Filter by key:** use the filter icon in the actions column. The notes panel says "Click the filter icon to filter by key(s)".
 - **All other data cells:** editable (white background, thin light grey border) directly in the table, including Status, which is plain text and no longer a pill. Edits save when the cell loses focus.
 - **Actions column** (left side of the table, after the select checkbox):

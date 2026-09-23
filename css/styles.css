@@ -849,10 +849,33 @@ input[type="file"] { display: none; }
 }
 
 .records-table-wrap {
-  overflow: auto;
+  overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
 }
+
+/* Frozen header row: a copy of the table's header row that pins to the top of the
+   screen once the real one scrolls off the page. browse.js keeps its column widths
+   and sideways scroll in step with the table. */
+.records-sticky-head {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 5;
+}
+.records-sticky-inner {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: #f4f6f7;
+  visibility: hidden;
+}
+.records-sticky-head.stuck .records-sticky-inner {
+  visibility: visible;
+  box-shadow: 0 3px 6px rgba(2, 48, 71, 0.12);
+}
+.records-sticky-inner .records-table { table-layout: fixed; min-width: 0; }
+.records-sticky-inner th { box-sizing: border-box; }
 
 .records-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
 .records-table th {

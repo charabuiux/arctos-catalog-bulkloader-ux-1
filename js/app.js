@@ -148,7 +148,7 @@ const STEPS_SHORT = ["Prepare", "Upload", "Stage", "Edit"]; // labels used on na
 const STEP_HREFS = ["index.html", "upload-csv.html", "staging.html", "browse-edit.html"];
 
 /* Default record count shown next to "Browse & Edit" until the Browse & Edit page changes it. */
-const DEFAULT_BROWSE_COUNT = 7;
+const DEFAULT_BROWSE_COUNT = 27;
 
 function getBrowseCount() {
   return Store.get("browse_count", DEFAULT_BROWSE_COUNT);

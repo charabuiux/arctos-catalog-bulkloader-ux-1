@@ -20,6 +20,7 @@ function initBrowseEditPage() {
   buildFilterLists();
   buildTableHead();
   renderRows();
+  initStickyHead();
 
   document.getElementById("apply-filter-btn").addEventListener("click", applyFilters);
   document.getElementById("clear-filter-btn").addEventListener("click", clearFilters);
@@ -321,4 +322,65 @@ function renderRows() {
   });
 
   document.getElementById("select-all-records").checked = rows.length > 0 && rows.every((r) => r.__selected);
+  syncStickyHead();
+}
+
+/* ---------- Frozen header row ----------
+   The table scrolls sideways inside its own box, which stops a CSS sticky header
+   from pinning to the page. Instead, a copy of the header row pins to the top of
+   the screen once the real one scrolls off, and follows the table's sideways scroll. */
+
+function initStickyHead() {
+  const wrap = document.querySelector(".records-table-wrap");
+  const inner = document.getElementById("records-sticky-inner");
+
+  wrap.addEventListener("scroll", () => {
+    inner.scrollLeft = wrap.scrollLeft;
+  });
+  window.addEventListener("scroll", updateStickyHeadVisibility, { passive: true });
+  window.addEventListener("resize", syncStickyHead);
+
+  // Clicks on the copy act on the real header: sorting and select all.
+  inner.addEventListener("click", (e) => {
+    const th = e.target.closest("th");
+    if (!th) return;
+    const realTh = document.getElementById("records-thead-row").children[th.cellIndex];
+    if (e.target.matches("input[type='checkbox']")) {
+      e.preventDefault();
+      realTh.querySelector("input").click();
+    } else if (realTh.classList.contains("sortable")) {
+      realTh.click();
+    }
+  });
+
+  syncStickyHead();
+}
+
+function syncStickyHead() {
+  const inner = document.getElementById("records-sticky-inner");
+  if (!inner) return;
+  const wrap = document.querySelector(".records-table-wrap");
+  const realTable = document.getElementById("records-table");
+  const realRow = document.getElementById("records-thead-row");
+
+  const copy = realRow.cloneNode(true);
+  copy.removeAttribute("id");
+  copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+  [...realRow.children].forEach((th, i) => {
+    copy.children[i].style.width = `${th.getBoundingClientRect().width}px`;
+  });
+  copy.querySelector("input[type='checkbox']").checked = document.getElementById("select-all-records").checked;
+
+  document.getElementById("records-sticky-thead").replaceChildren(copy);
+  inner.querySelector("table").style.width = `${realTable.getBoundingClientRect().width}px`;
+  inner.style.width = `${wrap.offsetWidth}px`;
+  inner.scrollLeft = wrap.scrollLeft;
+  updateStickyHeadVisibility();
+}
+
+function updateStickyHeadVisibility() {
+  const realHead = document.getElementById("records-table").tHead.getBoundingClientRect();
+  const table = document.getElementById("records-table").getBoundingClientRect();
+  const stuck = realHead.top < 0 && table.bottom > realHead.height * 2;
+  document.getElementById("records-sticky-head").classList.toggle("stuck", stuck);
 }
