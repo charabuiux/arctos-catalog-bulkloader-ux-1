@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Staging Table Check Validation Status — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content">
+      <div class="btn-row" style="margin-bottom:18px;">
+        <a class="btn btn-outline" href="staging.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Return to Staging Table</a>
+        <button class="btn btn-blue" id="download-error-btn"><span class="ic" data-icon="download-solid" data-size="13"></span> Download Error Log</button>
+      </div>
+
+      <div id="status-content"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <div id="toast-stack"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    renderHeader();
+    renderStandaloneTitle("Staging Table Check Validation Status");
+    renderFooter();
+    hydrateIcons();
+
+    const validated = Store.get("staging_validated", false);
+    const content = document.getElementById("status-content");
+
+    if (!validated) {
+      content.innerHTML = `<p class="helper-text">No validation has been run yet. Return to the Staging Table and click <strong>Validate</strong> first.</p>`;
+      document.getElementById("download-error-btn").disabled = true;
+    } else {
+      content.innerHTML = `
+        <p class="section-title">Errors Summary</p>
+        <table class="simple-table" style="max-width:760px;">
+          <thead><tr><th style="width:70px;">Count</th><th>Status</th><th style="width:120px;">CSV Cell</th></tr></thead>
+          <tbody>
+            ${VALIDATION_ERRORS.map((e) => `<tr><td>${e.count}</td><td>${e.status}</td><td>${e.cell}</td></tr>`).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    document.getElementById("download-error-btn").addEventListener("click", () => {
+      if (!validated) return;
+      const rows = [["Count", "Status", "CSV Cell"], ...VALIDATION_ERRORS.map((e) => [e.count, e.status, e.cell])];
+      downloadCSV("validation_error_report.csv", rows);
+      toast("Error log downloaded.");
+    });
+  </script>
+</body>
+</html>

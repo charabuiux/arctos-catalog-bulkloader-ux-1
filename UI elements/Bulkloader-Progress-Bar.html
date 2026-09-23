@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulkloader Progress Bar | Component Extraction</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/header-footer.css">
+  <style>
+    /* Showcase & Demo Styling */
+    body {
+      background-color: #f8fafc;
+      min-height: 100vh;
+      color: #1f2937;
+    }
+
+    .showcase-header {
+      background: linear-gradient(135deg, #072b49 0%, #0d3d63 100%);
+      color: #ffffff;
+      padding: 32px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .showcase-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .showcase-title-area h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .showcase-badge {
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
+
+    .showcase-header p {
+      margin-top: 6px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #237804;
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #1e6703;
+      text-decoration: none;
+    }
+
+    .showcase-container {
+      max-width: 1200px;
+      margin: 36px auto;
+      padding: 0 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      padding: 28px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    /* Interactive Controller */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .control-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .control-btn.active-step-btn {
+      background: #072b49;
+      color: #ffffff;
+      border-color: #072b49;
+    }
+
+    .state-info {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0284c7;
+      margin-left: auto;
+    }
+
+    /* State previews list */
+    .state-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .state-row {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 16px 20px;
+    }
+
+    .state-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #64748b;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .state-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: #006aa7;
+      text-transform: none;
+    }
+
+    /* Code Snippet Box */
+    .code-container {
+      position: relative;
+      margin-top: 14px;
+    }
+
+    .code-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 18px;
+      border-radius: 6px;
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Showcase Header -->
+  <header class="showcase-header">
+    <div class="showcase-header-inner">
+      <div class="showcase-title-area">
+        <h1>
+          Arctos Chevron Progress Stepper
+          <span class="showcase-badge">Component Extraction</span>
+        </h1>
+        <p>Extracted progress bar element from Arctos Bulkload Catalog Records v1.8</p>
+      </div>
+      <div>
+        <a href="index.html" class="back-btn">← Back to Main App</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="showcase-container">
+
+    <!-- Card 1: Live Interactive Component -->
+    <section class="card">
+      <div class="card-title">
+        <span>Interactive Progress Bar</span>
+      </div>
+      <p class="card-desc">Click any stage or use the step buttons below to test the active and completed states dynamically.</p>
+
+      <!-- Dynamic Controls -->
+      <div class="controls-bar">
+        <button type="button" class="control-btn" id="btn-prev">‹ Previous Step</button>
+        <button type="button" class="control-btn active-step-btn" data-step="1">Step 1: Prepare Template</button>
+        <button type="button" class="control-btn" data-step="2">Step 2: Upload CSV</button>
+        <button type="button" class="control-btn" data-step="3">Step 3: Staging</button>
+        <button type="button" class="control-btn" data-step="4">Step 4: Browse &amp; Edit</button>
+        <button type="button" class="control-btn" id="btn-next">Next Step ›</button>
+        <span class="state-info" id="current-state-text">Active: Step 1 (Prepare Template)</span>
+      </div>
+
+      <!-- The Live Stepper Element -->
+      <nav class="workflow-stepper" id="interactive-stepper" aria-label="Bulkload progress">
+        <a href="javascript:void(0)" class="step-item active" data-step-index="1">Prepare Template</a>
+        <a href="javascript:void(0)" class="step-item" data-step-index="2">Upload CSV</a>
+        <a href="javascript:void(0)" class="step-item" data-step-index="3">Staging</a>
+        <a href="javascript:void(0)" class="step-item" data-step-index="4">Browse &amp; Edit</a>
+      </nav>
+    </section>
+
+    <!-- Card 2: All 4 Page States as they appear in the Website -->
+    <section class="card">
+      <div class="card-title">
+        <span>All Website States</span>
+      </div>
+      <p class="card-desc">Exact representation of the progress bar across all 4 workflow pages in the website.</p>
+
+      <div class="state-grid">
+        <!-- State 1 -->
+        <div class="state-row">
+          <div class="state-label">
+            <span>Stage 1: Prepare Template (Active)</span>
+            <a href="prepare.html" class="state-link">View in prepare.html →</a>
+          </div>
+          <nav class="workflow-stepper" aria-label="Bulkload progress stage 1">
+            <a href="index.html" class="step-item active">Prepare Template</a>
+            <a href="upload.html" class="step-item">Upload CSV</a>
+            <a href="staging-errors.html" class="step-item">Staging</a>
+            <a href="browse-edit.html" class="step-item">Browse &amp; Edit</a>
+          </nav>
+        </div>
+
+        <!-- State 2 -->
+        <div class="state-row">
+          <div class="state-label">
+            <span>Stage 2: Upload CSV (Active)</span>
+            <a href="upload.html" class="state-link">View in upload.html →</a>
+          </div>
+          <nav class="workflow-stepper" aria-label="Bulkload progress stage 2">
+            <a href="index.html" class="step-item completed">Prepare Template</a>
+            <a href="upload.html" class="step-item active">Upload CSV</a>
+            <a href="staging-errors.html" class="step-item">Staging</a>
+            <a href="browse-edit.html" class="step-item">Browse &amp; Edit</a>
+          </nav>
+        </div>
+
+        <!-- State 3 -->
+        <div class="state-row">
+          <div class="state-label">
+            <span>Stage 3: Staging (Active)</span>
+            <a href="staging-errors.html" class="state-link">View in staging-errors.html →</a>
+          </div>
+          <nav class="workflow-stepper" aria-label="Bulkload progress stage 3">
+            <a href="index.html" class="step-item completed">Prepare Template</a>
+            <a href="upload.html" class="step-item completed">Upload CSV</a>
+            <a href="staging-errors.html" class="step-item active">Staging</a>
+            <a href="browse-edit.html" class="step-item">Browse &amp; Edit</a>
+          </nav>
+        </div>
+
+        <!-- State 4 -->
+        <div class="state-row">
+          <div class="state-label">
+            <span>Stage 4: Browse &amp; Edit (Active &amp; All Completed)</span>
+            <a href="browse-edit.html" class="state-link">View in browse-edit.html →</a>
+          </div>
+          <nav class="workflow-stepper" aria-label="Bulkload progress stage 4">
+            <a href="index.html" class="step-item completed">Prepare Template</a>
+            <a href="upload.html" class="step-item completed">Upload CSV</a>
+            <a href="staging-errors.html" class="step-item completed">Staging</a>
+            <a href="browse-edit.html" class="step-item active">Browse &amp; Edit</a>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <!-- Card 3: Extracted HTML Code -->
+    <section class="card">
+      <div class="card-title">
+        <span>Extracted HTML Markup</span>
+      </div>
+      <p class="card-desc">The semantic HTML structure used for the progress stepper across the website.</p>
+      <div class="code-container">
+        <button class="copy-btn" onclick="copySnippet('html-snippet', this)">Copy HTML</button>
+        <pre class="code-block" id="html-snippet">&lt;!-- Chevron Progress Stepper --&gt;
+&lt;nav class="workflow-stepper" aria-label="Bulkload progress"&gt;
+  &lt;a href="index.html" class="step-item active"&gt;Prepare Template&lt;/a&gt;
+  &lt;a href="upload.html" class="step-item"&gt;Upload CSV&lt;/a&gt;
+  &lt;a href="staging-errors.html" class="step-item"&gt;Staging&lt;/a&gt;
+  &lt;a href="browse-edit.html" class="step-item"&gt;Browse &amp; Edit&lt;/a&gt;
+&lt;/nav&gt;</pre>
+      </div>
+    </section>
+
+    <!-- Card 4: Extracted CSS Code -->
+    <section class="card">
+      <div class="card-title">
+        <span>Extracted CSS Stylesheet</span>
+      </div>
+      <p class="card-desc">The complete CSS rules and clip-path chevron definitions from <code>css/header-footer.css</code>.</p>
+      <div class="code-container">
+        <button class="copy-btn" onclick="copySnippet('css-snippet', this)">Copy CSS</button>
+        <pre class="code-block" id="css-snippet">/* Chevron Progress Stepper */
+.workflow-stepper {
+  display: flex;
+  width: 100%;
+  height: 28px;
+  margin-bottom: 24px;
+  background-color: #f1f1f1;
+  border-radius: 4px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.step-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  background-color: #efefef;
+  position: relative;
+  text-decoration: none;
+  padding: 0 16px 0 28px;
+  transition: all 0.2s ease;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%);
+}
+
+.step-item:first-child {
+  padding-left: 16px;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+}
+
+.step-item:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%);
+}
+
+/* Active / Completed Stepper States */
+.step-item.active,
+.step-item.completed {
+  background-color: #237804;
+  color: #ffffff;
+}
+
+.step-item:hover:not(.active):not(.completed) {
+  background-color: #e2e2e2;
+  color: #1f2937;
+}</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // State management for interactive demo
+    let currentStep = 1;
+    const totalSteps = 4;
+    const stepNames = ["Prepare Template", "Upload CSV", "Staging", "Browse & Edit"];
+
+    const interactiveStepper = document.getElementById('interactive-stepper');
+    const stepItems = interactiveStepper.querySelectorAll('.step-item');
+    const stepButtons = document.querySelectorAll('.control-btn[data-step]');
+    const currentStateText = document.getElementById('current-state-text');
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+
+    function setStep(step) {
+      currentStep = Math.max(1, Math.min(totalSteps, step));
+
+      stepItems.forEach((item, index) => {
+        const itemStep = index + 1;
+        item.classList.remove('active', 'completed');
+        if (itemStep < currentStep) {
+          item.classList.add('completed');
+        } else if (itemStep === currentStep) {
+          item.classList.add('active');
+        }
+      });
+
+      stepButtons.forEach(btn => {
+        const btnStep = parseInt(btn.getAttribute('data-step'), 10);
+        btn.classList.toggle('active-step-btn', btnStep === currentStep);
+      });
+
+      currentStateText.textContent = `Active: Step ${currentStep} (${stepNames[currentStep - 1]})`;
+      prevBtn.disabled = currentStep === 1;
+      nextBtn.disabled = currentStep === totalSteps;
+      prevBtn.style.opacity = currentStep === 1 ? '0.5' : '1';
+      nextBtn.style.opacity = currentStep === totalSteps ? '0.5' : '1';
+    }
+
+    // Attach button click events
+    stepButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setStep(parseInt(btn.getAttribute('data-step'), 10));
+      });
+    });
+
+    prevBtn.addEventListener('click', () => setStep(currentStep - 1));
+    nextBtn.addEventListener('click', () => setStep(currentStep + 1));
+
+    // Attach step item click events
+    stepItems.forEach(item => {
+      item.addEventListener('click', () => {
+        setStep(parseInt(item.getAttribute('data-step-index'), 10));
+      });
+    });
+
+    // Copy snippet helper
+    function copySnippet(elementId, btn) {
+      const code = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => {
+          btn.innerText = originalText;
+        }, 1800);
+      });
+    }
+
+    // Initialize
+    setStep(1);
+  </script>
+</body>
+</html>

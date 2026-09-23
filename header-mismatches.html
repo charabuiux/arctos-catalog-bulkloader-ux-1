@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CSV Header Mismatches — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content">
+      <div class="btn-row" style="margin-bottom:18px;">
+        <a class="btn btn-outline" href="upload-csv.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Re-upload</a>
+        <button class="btn btn-blue" id="download-report-btn"><span class="ic" data-icon="download-solid" data-size="13"></span> Download Error Log</button>
+      </div>
+
+      <p id="mismatch-filename" style="font-weight:500;"></p>
+
+      <div class="summary-boxes">
+        <div class="summary-box">
+          <img src="icons/filter-circle-xmark-solid.svg" alt="" />
+          <div class="count">1 Missing</div>
+        </div>
+        <div class="summary-box no-match">
+          <svg class="no-match-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16ZM8 4C8.41562 4 8.75 4.33437 8.75 4.75V8.25C8.75 8.66562 8.41562 9 8 9C7.58437 9 7.25 8.66562 7.25 8.25V4.75C7.25 4.33437 7.58437 4 8 4ZM7 11C7 10.7348 7.10536 10.4804 7.29289 10.2929C7.48043 10.1054 7.73478 10 8 10C8.26522 10 8.51957 10.1054 8.70711 10.2929C8.89464 10.4804 9 10.7348 9 11C9 11.2652 8.89464 11.5196 8.70711 11.7071C8.51957 11.8946 8.26522 12 8 12C7.73478 12 7.48043 11.8946 7.29289 11.7071C7.10536 11.5196 7 11.2652 7 11Z" fill="currentColor"/></svg>
+          <div class="count">3 no match</div>
+        </div>
+        <div class="summary-box">
+          <img src="icons/circle-check-regular.svg" alt="" />
+          <div class="count">12 has match</div>
+        </div>
+        <div class="summary-box">
+          <img src="icons/circle-info-solid.svg" alt="" />
+          <div class="count">103 not used</div>
+        </div>
+      </div>
+
+      <table class="simple-table mismatch-table" style="max-width:500px;">
+        <thead>
+          <tr><th>Field Name</th><th>Result</th></tr>
+        </thead>
+        <tbody id="mismatch-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    renderHeader();
+    renderStandaloneTitle("CSV Header Mismatches", {
+      label: "Field Definitions",
+      href: "https://docs.google.com/spreadsheets/d/1VbNC3k17WAHMum_qD5UYoXxUUWwXXh5gZSM5vfGvRzU/edit",
+    });
+    renderFooter();
+    hydrateIcons();
+
+    document.getElementById("mismatch-filename").textContent = Store.get("file_name", "BulkRecords.csv");
+
+    const iconFor = (result) => {
+      if (result === "Missing") return "filter-circle-xmark-solid";
+      if (result === "no match") return "circle-exclamation-solid";
+      return "circle-check-regular";
+    };
+
+    document.getElementById("mismatch-tbody").innerHTML = HEADER_MISMATCH_REPORT.map((r) => {
+      const isNoMatch = r.result === "no match";
+      const icon = isNoMatch
+        ? `<svg class="no-match-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16C10.1217 16 12.1566 15.1571 13.6569 13.6569C15.1571 12.1566 16 10.1217 16 8C16 5.87827 15.1571 3.84344 13.6569 2.34315C12.1566 0.842855 10.1217 0 8 0C5.87827 0 3.84344 0.842855 2.34315 2.34315C0.842855 3.84344 0 5.87827 0 8C0 10.1217 0.842855 12.1566 2.34315 13.6569C3.84344 15.1571 5.87827 16 8 16ZM8 4C8.41562 4 8.75 4.33437 8.75 4.75V8.25C8.75 8.66562 8.41562 9 8 9C7.58437 9 7.25 8.66562 7.25 8.25V4.75C7.25 4.33437 7.58437 4 8 4ZM7 11C7 10.7348 7.10536 10.4804 7.29289 10.2929C7.48043 10.1054 7.73478 10 8 10C8.26522 10 8.51957 10.1054 8.70711 10.2929C8.89464 10.4804 9 10.7348 9 11C9 11.2652 8.89464 11.5196 8.70711 11.7071C8.51957 11.8946 8.26522 12 8 12C7.73478 12 7.48043 11.8946 7.29289 11.7071C7.10536 11.5196 7 11.2652 7 11Z" fill="currentColor"/></svg>`
+        : `<img src="icons/${iconFor(r.result)}.svg" alt="" />`;
+      return `<tr><td>${r.field}</td><td><span class="result-icon${isNoMatch ? " no-match" : ""}">${icon}${r.result}</span></td></tr>`;
+    }).join("");
+
+    document.getElementById("download-report-btn").addEventListener("click", () => {
+      const rows = [["Field Name", "Result"], ...HEADER_MISMATCH_REPORT.map((r) => [r.field, r.result])];
+      downloadCSV("header_mismatch_report.csv", rows);
+      toast("Error log downloaded.");
+    });
+  </script>
+  <div id="toast-stack"></div>
+</body>
+</html>

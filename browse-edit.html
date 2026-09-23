@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Browse &amp; Edit — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content full-width">
+      <div class="browse-top">
+        <div class="filter-card">
+          <div class="filter-list-group">
+            <label class="flabel">Entered By</label>
+            <ul class="filter-list" id="filter-enteredby" data-field="enteredby"></ul>
+          </div>
+          <div class="filter-list-group">
+            <label class="flabel">Accession</label>
+            <ul class="filter-list" id="filter-accn" data-field="accn"></ul>
+          </div>
+          <div class="filter-list-group">
+            <label class="flabel">Collection</label>
+            <ul class="filter-list" id="filter-collection" data-field="guid_prefix"></ul>
+          </div>
+          <div class="filter-fields">
+            <div class="ff-row"><label>Key(s)</label><input type="text" id="ff-key" /></div>
+            <div class="ff-row"><label>UUID</label><input type="text" id="ff-uuid" /></div>
+            <div class="ff-row"><label>CatNum</label><input type="text" id="ff-catnum" /></div>
+            <div class="ff-row"><label>Status</label><input type="text" id="ff-status" /></div>
+            <div class="apply-wrap">
+              <button class="btn btn-outline" id="clear-filter-btn">Clear Filter</button>
+              <button class="btn btn-blue" id="apply-filter-btn">Apply Filter</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="notes-card">
+          <strong>NOTES</strong>
+          <ul>
+            <li>Click the filter icon to filter by key(s)</li>
+          </ul>
+          <div class="set-status-title">SET STATUS TO</div>
+          <div class="set-status-row"><strong>autoload</strong> publish record</div>
+          <div class="set-status-row"><strong>DELETE</strong> delete a record (~30 min delay, case-sensitive)</div>
+        </div>
+
+        <div class="publish-actions">
+          <div class="btn-row-top">
+            <a class="btn btn-outline" href="staging.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Back</a>
+            <button class="btn btn-primary" id="publish-selected-btn"><span class="ic" data-icon="upload-solid" data-size="13"></span> Publish Selected</button>
+          </div>
+          <a class="side-link" href="#" id="publish-queue-link"><span class="ic" data-icon="clipboard-check-solid" data-size="13"></span> Publishing Queue</a>
+          <a class="side-link" href="#" id="download-browse-csv"><span class="ic" data-icon="download-solid" data-size="13"></span> Download CSV</a>
+        </div>
+      </div>
+
+      <div class="grid-toolbar">
+        <div class="left">
+          <a href="#" id="add-record-link"><span class="ic" data-icon="plus-icon" data-size="13"></span> add record</a>
+          <a href="#" id="delete-selected-link"><span class="ic" data-icon="trash-solid" data-size="13"></span> delete selected</a>
+        </div>
+        <div class="right" style="position:relative;">
+          <a href="#" id="show-all-col-link"><span class="ic" data-icon="eye-solid" data-size="13"></span> show all col.</a>
+          <a href="#" id="customize-view-link"><span class="ic" data-icon="sliders-solid" data-size="13"></span> customize view</a>
+          <div class="col-chooser" id="col-chooser"></div>
+        </div>
+      </div>
+
+      <div class="records-table-wrap">
+        <table class="records-table" id="records-table">
+          <thead>
+            <tr id="records-thead-row"></tr>
+          </thead>
+          <tbody id="records-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <div id="toast-stack"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/browse.js"></script>
+  <script>
+    initBrowseEditPage();
+  </script>
+</body>
+</html>

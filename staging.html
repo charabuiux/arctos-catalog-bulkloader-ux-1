@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Staging Table — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content full-width">
+
+      <p class="staging-notice" id="staging-description" data-full="This Staging Table holds records temporarily for validation. Only 1 user can use the staging table at a time. If errors take more than 30 minutes to fix, download the error log, clear data from the Staging Table, and fix them on your computer.">This Staging Table holds records temporarily for validation. Only 1 user can use the staging table at a time. If errors take more than 30 minutes to fix, download the error log, clear data from the Staging Table, and fix them on your computer.</p>
+
+      <!-- ===== Occupied state ===== -->
+      <div id="occupied-view" style="display:none;">
+        <div class="callout status-bad" style="margin-bottom:18px;">
+          <img src="icons/circle-exclamation-solid.svg" alt="" />
+          <div>
+            <div class="status-label">Staging Table Status</div>
+            <div class="status-value">Occupied</div>
+          </div>
+        </div>
+
+        <div class="staging-notice">
+          <p>The staging table can only contain 1 user's data at a time. It will become available after either:</p>
+          <ul>
+            <li>The data owner uploads the data to their Browse &amp; Edit table</li>
+            <li>The data owner clears their data from the staging table</li>
+          </ul>
+          <p>Wait at least 30 minutes from the data entry time before contacting the data’s owner.</p>
+        </div>
+
+        <div class="contact-box">
+          <div class="contact-icon"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M5.09069 0C6.71334 0 8.02762 1.31428 8.02762 2.93693C8.02762 4.55959 6.71334 5.87387 5.09069 5.87387C3.46803 5.87387 2.15375 4.55959 2.15375 2.93693C2.15375 1.31428 3.46803 0 5.09069 0ZM4.3638 7.24444H5.81758C5.98156 7.24444 6.14064 7.25423 6.29973 7.27136C6.2777 7.39129 6.26546 7.51366 6.26546 7.63848V9.89258C6.26546 10.5167 6.51265 11.1139 6.95319 11.5544L7.73393 12.3351H0.726891C0.32551 12.3351 0 12.0096 0 11.6082C0 9.1975 1.95306 7.24444 4.3638 7.24444ZM7.44024 9.89258V7.63848C7.44024 7.20528 7.79022 6.8553 8.22342 6.8553H10.4775C10.7883 6.8553 11.0869 6.98012 11.3072 7.20039L13.6567 9.54993C14.1144 10.0076 14.1144 10.7516 13.6567 11.2117L11.7942 13.0743C11.3366 13.5319 10.5925 13.5319 10.1324 13.0743L7.78288 10.7247C7.56261 10.5044 7.43779 10.2058 7.43779 9.89502L7.44024 9.89258ZM9.98558 8.8108C9.98558 8.48529 9.7237 8.22342 9.39819 8.22342C9.07268 8.22342 8.8108 8.48529 8.8108 8.8108C8.8108 9.13631 9.07268 9.39819 9.39819 9.39819C9.7237 9.39819 9.98558 9.13631 9.98558 8.8108Z" fill="currentColor"/></svg></div>
+          <div class="contact-cols">
+            <div class="contact-lines">
+              <p>1,342 records in Staging Table</p>
+              <p id="occupied-since"></p>
+              <p>Jane Doe - jdoe - <a href="mailto:jdoe@example.edu">jdoe@example.edu</a> - no locks</p>
+            </div>
+            <div class="contact-lines">
+              <p>Github username: <a href="#" target="_blank">@jdoe</a></p>
+              <p>MVZ:Fish, MVZ:Bird</p>
+              <p>Collection contacts' githubs: <a href="#" target="_blank">mkoo</a>, <a href="#" target="_blank">ridabrams</a>, <a href="#" target="_blank">dustymc</a></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-steps">
+          <p>If the active user does not respond within 30 minutes:</p>
+          <ol>
+            <li><button class="btn btn-outline" id="download-their-data-btn"><span class="ic" data-icon="download-solid" data-size="13"></span> Download their data</button></li>
+            <li>Attach it to a <a href="#" target="_blank">GitHub Issue</a></li>
+            <li>Tag them using their github username: @jdoe</li>
+          </ol>
+        </div>
+
+        <div class="btn-row">
+          <a class="btn btn-outline" href="upload-csv.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Back</a>
+          <button class="btn btn-primary" disabled>Upload to Staging Table &rarr;</button>
+          <span class="helper-text">Cannot upload while another user's data is occupying the staging table</span>
+        </div>
+      </div>
+
+      <!-- ===== Available state ===== -->
+      <div id="available-view" style="display:none;">
+        <div class="pill-row">
+          <div class="deadline-box">
+            <svg class="pill-svg" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 0C13.1031 0 14 0.896875 14 2V12C14 13.1031 13.1031 14 12 14H2L1.79688 13.9906C0.7875 13.8875 0 13.0344 0 12V2C0 0.896875 0.896875 0 2 0H12ZM2 9V12H6V9H2ZM8 9V12H12V9H8ZM2 7H6V4H2V7ZM8 7H12V4H8V7Z" fill="currentColor"/></svg>
+            <span><strong>1,342</strong> records staged</span>
+          </div>
+          <div class="deadline-box">
+            <img src="icons/Clock-grey.png" alt="Time" />
+            <span>Please finish using the staging table by <strong id="deadline-time"></strong></span>
+          </div>
+        </div>
+
+        <div class="staging-group">
+          <h2>Validation</h2>
+          <div class="action-row">
+            <button class="btn btn-outline" id="validate-btn"><span class="ic" data-icon="clipboard-check-solid" data-size="13"></span> Validate</button>
+            <span class="action-desc">Pre-checks staged records in the background. Refresh the page to check progress.</span>
+          </div>
+          <div class="action-row">
+            <a class="btn btn-outline" href="check-status.html"><span class="ic" data-icon="clipboard-check-solid" data-size="13"></span> Check Status</a>
+            <span class="action-desc">View validation progress and error logs.</span>
+          </div>
+        </div>
+
+        <div class="staging-group">
+          <h2>Edit</h2>
+          <div class="action-row">
+            <button class="btn btn-outline" id="strip-junk-btn"><span class="ic" data-icon="broom-solid" data-size="13"></span> Strip Junk</button>
+            <span class="action-desc">Removes "junk" (e.g. non-printing characters) from text fields. This may help resolve errors.</span>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-outline" id="edit-grid-btn"><span class="ic" data-icon="pen-to-square-solid" data-size="13"></span> Edit in grid</button>
+            <span class="action-desc">Edit staging table records in a tabular view.</span>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-outline" id="download-staging-btn"><span class="ic" data-icon="download-solid" data-size="13"></span> Download</button>
+            <span class="action-desc">Export staging table records as a CSV.</span>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-outline btn-danger-outline" id="clear-data-btn"><span class="ic" data-icon="trash-solid" data-size="13"></span> Clear Data</button>
+            <span class="action-desc">Permanently clears all records from the staging table.</span>
+          </div>
+        </div>
+
+        <div class="staging-group">
+          <h2>Load</h2>
+          <div class="action-row">
+            <a class="btn btn-primary" href="browse-edit.html" id="load-browse-btn">Load to Browse &amp; Edit &rarr;</a>
+            <span class="action-desc">Validation is recommended before loading. Unresolved errors can cause messes. Some data may not successfully transfer.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Empty state (no data at all) ===== -->
+      <div id="empty-view" style="display:none;">
+        <p class="staging-notice">There is currently no data in the staging table.</p>
+        <a class="btn btn-primary" href="upload-csv.html">Upload CSV &rarr;</a>
+      </div>
+
+      <div class="proto-panel">
+        <h2>Prototype demo control &mdash; staging table state</h2>
+        <div class="proto-row">
+          <label><input type="radio" name="staging-demo" value="available" /> Available</label>
+          <label><input type="radio" name="staging-demo" value="occupied-by-other" /> Occupied by another user</label>
+          <label><input type="radio" name="staging-demo" value="empty" /> Empty</label>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <div id="toast-stack"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/staging.js"></script>
+  <script>
+    initStagingPage();
+  </script>
+</body>
+</html>

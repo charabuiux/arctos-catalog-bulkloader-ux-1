@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prepare a CSV — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content">
+      <p class="section-title">Ways in which you can prepare a CSV for bulkloading</p>
+      <button class="choice-btn" onclick="location.href='build-csv.html'">Build Your CSV</button>
+      <button class="choice-btn" id="download-search-btn">Download Search Results</button>
+      <div class="btn-row" style="margin-top:18px;">
+        <a class="btn btn-outline" href="index.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Back</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <div id="toast-stack"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    bootLayout({ stepper: 1 });
+    hydrateIcons();
+
+    document.getElementById("download-search-btn").addEventListener("click", () => {
+      toast("This would take you to Search, where you can download your current search results as a CSV ready for bulkload.");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Upload CSV — Bulkload Catalog Records</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+
+  <main class="main-wrap">
+    <div class="page-header" id="page-header"></div>
+
+    <div class="page-content">
+      <div class="upload-row">
+        <button class="btn btn-outline" id="choose-file-btn">
+          <span class="ic" data-icon="square-plus-solid" data-size="13"></span> Choose File
+        </button>
+        <span id="file-status">No file chosen</span>
+        <input type="file" id="file-input" accept=".csv" />
+      </div>
+
+      <div id="mismatch-inline" style="display:none;" class="error-banner">
+        <svg class="banner-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7.99885 1C8.4426 1 8.85197 1.23437 9.07697 1.61875L15.827 13.1187C16.0551 13.5062 16.0551 13.9844 15.8332 14.3719C15.6113 14.7594 15.1957 15 14.7488 15H1.24885C0.801971 15 0.386347 14.7594 0.164472 14.3719C-0.0574034 13.9844 -0.0542784 13.5031 0.170722 13.1187L6.92072 1.61875C7.14572 1.23437 7.5551 1 7.99885 1ZM7.99885 5C7.58322 5 7.24885 5.33437 7.24885 5.75V9.25C7.24885 9.66562 7.58322 10 7.99885 10C8.41447 10 8.74885 9.66562 8.74885 9.25V5.75C8.74885 5.33437 8.41447 5 7.99885 5ZM8.99885 12C8.99885 11.7348 8.89349 11.4804 8.70595 11.2929C8.51842 11.1054 8.26406 11 7.99885 11C7.73363 11 7.47928 11.1054 7.29174 11.2929C7.1042 11.4804 6.99885 11.7348 6.99885 12C6.99885 12.2652 7.1042 12.5196 7.29174 12.7071C7.47928 12.8946 7.73363 13 7.99885 13C8.26406 13 8.51842 12.8946 8.70595 12.7071C8.89349 12.5196 8.99885 12.2652 8.99885 12Z" fill="currentColor"/></svg>
+        <div>
+          This file contains column headers which do not align with database column headers. Please fix and re-upload.<br />
+          <a href="header-mismatches.html">View CSV Header Mismatches</a>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:10px;">
+        <a class="btn btn-outline" href="index.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Back</a>
+        <button class="btn btn-primary" id="upload-btn" disabled>Upload CSV to Staging &rarr;</button>
+        <span class="helper-text" id="upload-helper">Upload a file to proceed</span>
+      </div>
+
+      <div class="proto-panel">
+        <h2>Prototype demo control &mdash; simulate the upload result</h2>
+        <div class="proto-row">
+          <label><input type="radio" name="scenario" value="success" checked /> Success</label>
+          <label><input type="radio" name="scenario" value="mismatch" /> Header mismatch</label>
+          <label><input type="radio" name="scenario" value="occupied" /> Staging table occupied</label>
+        </div>
+        <p>Choose a file, then click "Upload CSV to Staging" to see the corresponding screen from the mockups.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+
+  <!-- Modal 3a: header mismatch -->
+  <div class="modal-overlay" id="modal-mismatch">
+    <div class="modal-card">
+      <div class="modal-icon"><img src="icons/circle-exclamation-solid.svg" alt="" /></div>
+      <p>This file contains field names which do not align with database field names. Please fix and re-upload.</p>
+      <p class="modal-file" id="modal-mismatch-filename"></p>
+      <div class="modal-actions">
+        <a class="btn btn-outline" href="header-mismatches.html">View field mismatches</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5a: staging occupied -->
+  <div class="modal-overlay" id="modal-occupied">
+    <div class="modal-card">
+      <div class="modal-icon"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.99885 1C8.4426 1 8.85197 1.23437 9.07697 1.61875L15.827 13.1187C16.0551 13.5062 16.0551 13.9844 15.8332 14.3719C15.6113 14.7594 15.1957 15 14.7488 15H1.24885C0.801971 15 0.386347 14.7594 0.164472 14.3719C-0.0574034 13.9844 -0.0542784 13.5031 0.170722 13.1187L6.92072 1.61875C7.14572 1.23437 7.5551 1 7.99885 1ZM7.99885 5C7.58322 5 7.24885 5.33437 7.24885 5.75V9.25C7.24885 9.66562 7.58322 10 7.99885 10C8.41447 10 8.74885 9.66562 8.74885 9.25V5.75C8.74885 5.33437 8.41447 5 7.99885 5ZM8.99885 12C8.99885 11.7348 8.89349 11.4804 8.70595 11.2929C8.51842 11.1054 8.26406 11 7.99885 11C7.73363 11 7.47928 11.1054 7.29174 11.2929C7.1042 11.4804 6.99885 11.7348 6.99885 12C6.99885 12.2652 7.1042 12.5196 7.29174 12.7071C7.47928 12.8946 7.73363 13 7.99885 13C8.26406 13 8.51842 12.8946 8.70595 12.7071C8.89349 12.5196 8.99885 12.2652 8.99885 12Z" fill="currentColor"/></svg></div>
+      <p>Your file could not be uploaded because there is currently data in the staging table.</p>
+      <div class="modal-actions">
+        <a class="btn btn-outline" href="staging.html">View Staging Table</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: success -->
+  <div class="modal-overlay" id="modal-success">
+    <div class="modal-card">
+      <div class="modal-icon"><img src="icons/circle-check-regular.svg" alt="" /></div>
+      <p>Your file has been successfully uploaded to the staging table.</p>
+      <p class="modal-file" id="modal-success-filename"></p>
+      <div class="modal-actions">
+        <a class="btn btn-blue" href="staging.html">Continue &rarr;</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-stack"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/upload.js"></script>
+  <script>
+    bootLayout({ stepper: 2, stepperOpts: { title: "Bulkload Catalog Records: Upload CSV" } });
+    initUploadPage();
+    hydrateIcons();
+  </script>
+</body>
+</html>
