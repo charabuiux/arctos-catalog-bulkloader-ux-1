@@ -398,22 +398,6 @@ a.nav-trigger, .nav-item > a.nav-trigger {
   padding: 18px 20px;
 }
 
-.callout {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  max-width: fit-content;
-}
-
-.callout img.icon { height: 22px; }
-.callout .status-label { font-weight: 700; font-size: 15px; }
-.callout .status-value { font-weight: 700; }
-.callout.status-bad .status-value { color: var(--red); }
-.callout.status-good .status-value { color: var(--green-dark); }
-
 /* ---------------- Modal ---------------- */
 
 .modal-overlay {
@@ -467,6 +451,7 @@ a.nav-trigger, .nav-item > a.nav-trigger {
   max-width: 340px;
   animation: toast-in 0.18s ease-out;
 }
+.toast-error { background: var(--red); }
 
 @keyframes toast-in {
   from { transform: translateY(8px); opacity: 0; }
@@ -515,7 +500,7 @@ table { border-collapse: collapse; width: 100%; }
 
 .fc-row {
   display: grid;
-  grid-template-columns: 64px 1fr;
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 5px 0;
@@ -529,7 +514,7 @@ table { border-collapse: collapse; width: 100%; }
   font-size: 14px;
 }
 
-.fc-row .fc-name { font-weight: 700; }
+.fc-row .fc-name { font-weight: 700; overflow-wrap: anywhere; }
 .fc-row .fc-desc { color: var(--text-muted); font-size: 12.5px; margin-left: 6px; }
 
 .fc-actions { margin-top: 14px; display: flex; gap: 10px; }
@@ -573,6 +558,14 @@ table { border-collapse: collapse; width: 100%; }
 .fields-table input[type="checkbox"] { transform: scale(1.05); }
 .fields-table td.chk-cell { width: 30px; text-align: center; }
 .fields-table th.chk-cell { width: 30px; text-align: center; }
+.fields-table th.cat-col { width: 220px; }
+/* Long field names wrap instead of pushing the table wider than the screen. */
+.fields-table td { overflow-wrap: break-word; }
+/* Phones: hide the Category column; each group's header row already names the category. */
+@media (max-width: 600px) {
+  .fields-table th.cat-col,
+  .fields-table td.cat-cell { display: none; }
+}
 
 /* ---------------- Upload page ---------------- */
 
@@ -659,6 +652,27 @@ input[type="file"] { display: none; }
 .deadline-box .pill-svg { width: 13px; height: 13px; flex-shrink: 0; color: #6c757d; }
 .deadline-box img { width: 13px; height: 13px; flex-shrink: 0; }
 .deadline-box strong { font-weight: 700; }
+/* The clock PNG is used as a mask so its color can change (grey, or red once the time has passed). */
+.deadline-box .clock-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  background-color: #6c757d;
+  -webkit-mask: url("../icons/Clock-grey.png") center / contain no-repeat;
+  mask: url("../icons/Clock-grey.png") center / contain no-repeat;
+}
+.deadline-box.overdue .clock-icon { background-color: var(--red); }
+/* Occupied status pill: same pill as the records count, with a red alert icon and status. */
+.deadline-box .alert-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  background-color: var(--red);
+  -webkit-mask: url("../icons/circle-exclamation-solid.svg") center / contain no-repeat;
+  mask: url("../icons/circle-exclamation-solid.svg") center / contain no-repeat;
+}
+.deadline-box .status-occupied { color: var(--red); }
+.deadline-box.overdue #deadline-time { color: var(--red); }
 
 .staging-group { margin-bottom: 22px; }
 .staging-group h2 {
@@ -667,12 +681,17 @@ input[type="file"] { display: none; }
   color: var(--navy);
 }
 
+/* When a description wraps below its button, it sits close to that button (row gap)
+   and further from the next button (margin), so each pair reads as one group. */
 .action-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 4px 16px;
   margin-bottom: 10px;
   flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .action-row { margin-bottom: 20px; }
 }
 
 .action-row .btn { min-width: 150px; justify-content: center; }
@@ -710,7 +729,9 @@ input[type="file"] { display: none; }
 
 .browse-top {
   display: grid;
-  grid-template-columns: minmax(560px, 660px) minmax(280px, 380px) auto;
+  /* The filters and notes shrink as the window narrows, so the publish actions never
+     spill past the right edge. Below 900px the tablet layout takes over. */
+  grid-template-columns: minmax(470px, 660px) minmax(170px, 380px) auto;
   gap: 16px;
   align-items: start;
   margin-bottom: 18px;
@@ -719,6 +740,7 @@ input[type="file"] { display: none; }
 .filter-card {
   display: flex;
   gap: 12px;
+  min-width: 0;
   background: #f8f9fa;
   border: 1px solid #d0d7de;
   border-radius: 6px;
@@ -730,7 +752,7 @@ input[type="file"] { display: none; }
   flex-direction: column;
   font-size: 13px;
   flex: 1;
-  min-width: 90px;
+  min-width: 80px;
 }
 
 .filter-list-group label.flabel {
@@ -760,6 +782,8 @@ input[type="file"] { display: none; }
 }
 .filter-list li:hover { background: #e9ecef; }
 .filter-list li.selected { background: #006699; color: #fff; }
+.filter-list li:focus { outline: none; }
+.filter-list li:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
 
 .filter-fields {
   display: flex;
@@ -767,7 +791,8 @@ input[type="file"] { display: none; }
   gap: 4px;
   font-size: 12px;
   margin-left: auto;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 170px; /* room for Clear Filter and Apply Filter on one line */
 }
 
 .filter-fields .ff-row {
@@ -778,6 +803,7 @@ input[type="file"] { display: none; }
 
 .filter-fields label {
   width: 50px;
+  flex-shrink: 0;
   text-align: right;
   font-size: 12px;
   font-weight: 400;
@@ -786,6 +812,8 @@ input[type="file"] { display: none; }
 
 .filter-fields input {
   width: 180px;
+  min-width: 60px;
+  flex: 0 1 180px;
   border: 1px solid #ced4da;
   border-radius: 3px;
   padding: 2px 6px;
@@ -795,7 +823,8 @@ input[type="file"] { display: none; }
 .filter-fields .apply-wrap { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
 .filter-fields .apply-wrap .btn {
-  font-size: 11.5px;
+  white-space: nowrap;
+  font-size: 12px;
   font-weight: 400;
   padding: 3px 10px;
   border-radius: 4px;
@@ -809,10 +838,21 @@ input[type="file"] { display: none; }
   padding: 14px 16px;
   font-size: 12px;
 }
+
 .notes-card ul { margin: 6px 0 12px; padding-left: 18px; }
 .notes-card li { margin-bottom: 3px; }
 .notes-card .set-status-title { font-weight: 700; margin-top: 4px; }
 .notes-card .set-status-row { display: flex; gap: 8px; margin: 4px 0; }
+/* On tablets and phones, Notes and Set Status To sit side by side as two columns. */
+@media (max-width: 900px) {
+  .notes-card { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .notes-card ul { margin-bottom: 0; }
+  .notes-card .set-status-title { margin-top: 0; }
+}
+/* Phone columns are narrow, so each keyword sits above its description. */
+@media (max-width: 600px) {
+  .notes-card .set-status-row { flex-direction: column; gap: 0; margin: 6px 0; }
+}
 .notes-card .set-status-row code {
   background: #f4f6f7;
   border: 1px solid var(--border-light);
@@ -829,6 +869,7 @@ input[type="file"] { display: none; }
   gap: 10px;
 }
 .publish-actions .btn-row-top { display: flex; gap: 10px; }
+.publish-actions .btn { white-space: nowrap; }
 .publish-actions .side-link { display: flex; align-items: center; gap: 6px; font-weight: 500; }
 
 .grid-toolbar {
@@ -846,6 +887,13 @@ input[type="file"] { display: none; }
   align-items: center;
   gap: 6px;
   margin-right: 18px;
+}
+
+.grid-toolbar .col-count {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-right: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .records-table-wrap {
@@ -886,8 +934,19 @@ input[type="file"] { display: none; }
   font-size: 12.5px;
   white-space: nowrap;
 }
-.records-table th.sortable { cursor: pointer; user-select: none; }
-.records-table th.sortable img { height: 8px; margin-left: 4px; vertical-align: 1px; }
+.records-table .sort-btn {
+  background: none;
+  border: none;
+  padding: 2px 3px;
+  margin-left: 2px;
+  cursor: pointer;
+  line-height: 0;
+  vertical-align: -1px;
+  border-radius: 3px;
+}
+.records-table .sort-btn:hover { background: #e2e8f0; }
+.records-table .sort-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.records-table .sort-btn img { height: 12px; }
 .records-table td {
   padding: 7px 10px;
   border-bottom: 1px solid var(--border-light);
@@ -895,6 +954,17 @@ input[type="file"] { display: none; }
   white-space: nowrap;
 }
 .records-table tr:hover td { background: var(--row-hover); }
+
+/* Frozen key column: stays on the left edge while the table scrolls sideways. */
+.records-table .col-key {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #fff;
+  box-shadow: inset -1px 0 0 var(--border);
+}
+.records-table th.col-key { background: #f4f6f7; z-index: 3; }
+.records-table tr:hover td.col-key { background: var(--row-hover); }
 .records-table td.actions-cell { display: flex; gap: 10px; align-items: center; }
 .records-table td.actions-cell button { background: none; border: none; cursor: pointer; padding: 2px; color: var(--blue); }
 .records-table td[contenteditable="true"],
@@ -902,18 +972,6 @@ input[type="file"] { display: none; }
 .records-table td[contenteditable="true"]:focus { outline: 1px solid var(--blue); outline-offset: -1px; }
 .records-table .col-hidden { display: none; }
 
-.col-chooser {
-  position: absolute;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  padding: 10px 14px;
-  z-index: 50;
-  display: none;
-}
-.col-chooser.open { display: block; }
-.col-chooser label { display: block; font-size: 13px; padding: 3px 0; cursor: pointer; }
 
 /* ---------------- Footer ---------------- */
 
@@ -963,7 +1021,13 @@ input[type="file"] { display: none; }
 
 /* ---------------- Standalone (no-stepper) page title ---------------- */
 
+/* Tablet: filters across the top; notes panel and publish actions side by side below. */
 @media (max-width: 900px) {
-  .browse-top { grid-template-columns: 1fr; }
+  .browse-top { grid-template-columns: 1fr auto; }
+  .browse-top .filter-card { grid-column: 1 / -1; }
   .filter-card { flex-wrap: wrap; }
+}
+/* Phone: everything stacks, with the publish actions under the notes panel. */
+@media (max-width: 600px) {
+  .browse-top { grid-template-columns: 1fr; }
 }

@@ -14,7 +14,7 @@ function initBuildCsvPage() {
     return `
       <div class="fc-row">
         <select data-key="${g.key}">${options}</select>
-        <div><span class="fc-name">${g.key}</span><span class="fc-desc">${g.desc}</span></div>
+        <div><span class="fc-name">${breakAtUnderscores(g.key)}</span><span class="fc-desc">${g.desc}</span></div>
       </div>`;
   }).join("");
 
@@ -59,6 +59,19 @@ function initBuildCsvPage() {
   });
 }
 
+// Lets long field names wrap after an underscore instead of mid-word on narrow screens.
+function breakAtUnderscores(name) {
+  return name.replace(/_/g, "_<wbr>");
+}
+
+// On phones the Category column is hidden (each group's header row already names the
+// category), so the header row's name cell spans 1 column instead of 2.
+const phoneQuery = window.matchMedia("(max-width: 600px)");
+const catNameSpan = () => (phoneQuery.matches ? 1 : 2);
+phoneQuery.addEventListener("change", () => {
+  document.querySelectorAll("#fields-tbody td.cat-name").forEach((td) => (td.colSpan = catNameSpan()));
+});
+
 function buildFieldsTable(counts) {
   const tbody = document.getElementById("fields-tbody");
   const rows = [];
@@ -88,14 +101,14 @@ function buildFieldsTable(counts) {
         const total = rows.filter((x) => x.category === r.category).length;
         header = `
         <tr class="cat-header-row" data-cat="${r.category}">
-          <td colspan="2"><strong>${r.category}</strong> <span class="cat-count" data-cat-count="${r.category}"></span></td>
+          <td class="cat-name" colspan="${catNameSpan()}"><strong>${r.category}</strong> <span class="cat-count" data-cat-count="${r.category}"></span></td>
           <td class="chk-cell"><input type="checkbox" class="cat-toggle" data-cat="${r.category}" data-total="${total}" title="Select / deselect all ${r.category} fields" aria-label="Select or deselect all ${r.category} fields" /></td>
         </tr>`;
       }
       return `${header}
         <tr>
           <td class="cat-cell">${r.category}</td>
-          <td class="${r.required ? "req" : ""}">${r.field}</td>
+          <td class="${r.required ? "req" : ""}">${breakAtUnderscores(r.field)}</td>
           <td class="chk-cell"><input type="checkbox" data-field="${r.field}" data-cat="${r.category}" ${r.required ? disabled : checked} /></td>
         </tr>`;
     })

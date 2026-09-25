@@ -41,14 +41,30 @@ function initStagingPage() {
       document.getElementById("occupied-since").innerHTML = `<strong>${mins} minutes</strong> since data was entered ${dateStr} ${timeStr}`;
     }
 
-    if (status === "available") {
-      const deadline = new Date(Date.now() + 30 * 60000);
-      document.getElementById("deadline-time").textContent = deadline.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    }
+    if (status === "available") renderDeadline();
   }
+
+  // The finish-by time is 30 minutes after the user's upload. If they reach this page
+  // without uploading (stepper or demo control), the first visit counts as the upload
+  // time until their next upload. Once the time has passed, the clock and time turn red.
+  function renderDeadline() {
+    let uploadedAt = Store.get("staging_uploaded_at", null);
+    if (uploadedAt === null) {
+      uploadedAt = Date.now();
+      Store.set("staging_uploaded_at", uploadedAt);
+    }
+    const deadline = new Date(uploadedAt + 30 * 60000);
+    document.getElementById("deadline-time").textContent = deadline.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    document.getElementById("deadline-box").classList.toggle("overdue", Date.now() >= deadline.getTime());
+  }
+
+  // Turn the time red while the page is open, not only on the next visit.
+  setInterval(() => {
+    if (currentStatus() === "available") renderDeadline();
+  }, 15000);
 
   document.querySelectorAll('input[name="staging-demo"]').forEach((r) => {
     r.addEventListener("change", () => {

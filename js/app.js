@@ -139,6 +139,17 @@ function renderHeader(activeRoot = "") {
       document.querySelectorAll(".nav-item.open").forEach((n) => n.classList.remove("open"));
     }
   });
+
+  // None of the header's destination pages are in the prototype: every menu item and
+  // the Tools Directory link show a notice instead of navigating.
+  el.querySelectorAll(".nav-dropdown a, a.nav-trigger").forEach((link) => {
+    link.removeAttribute("target");
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.querySelectorAll(".nav-item.open").forEach((n) => n.classList.remove("open"));
+      toast(`"${link.textContent.trim()}" isn't available in the prototype.`);
+    });
+  });
 }
 
 /* ---------------- Stepper ---------------- */
@@ -224,7 +235,21 @@ function renderFooter() {
 
 /* ---------------- Toast ---------------- */
 
-function toast(message, ms = 3200) {
+// How long a notice stays up depends on its length, sized for a 60-year-old reader:
+//   2 s to notice it and start reading + 80 ms per character (about 150 words a minute),
+//   never shorter than 6 s or longer than 20 s.
+// It also closes as soon as the user clicks anywhere else on the page.
+const TOAST_START_MS = 2000;
+const TOAST_MS_PER_CHAR = 80;
+const TOAST_MIN_MS = 6000;
+const TOAST_MAX_MS = 20000;
+
+function toastDuration(message) {
+  const ms = TOAST_START_MS + message.length * TOAST_MS_PER_CHAR;
+  return Math.min(TOAST_MAX_MS, Math.max(TOAST_MIN_MS, ms));
+}
+
+function toast(message, type = "info") {
   let stack = document.getElementById("toast-stack");
   if (!stack) {
     stack = document.createElement("div");
@@ -232,10 +257,21 @@ function toast(message, ms = 3200) {
     document.body.appendChild(stack);
   }
   const t = document.createElement("div");
-  t.className = "toast";
+  t.className = type === "error" ? "toast toast-error" : "toast";
+  if (type === "error") t.setAttribute("role", "alert");
   t.textContent = message;
   stack.appendChild(t);
-  setTimeout(() => t.remove(), ms);
+
+  const onClickElsewhere = (e) => {
+    if (!t.contains(e.target)) close();
+  };
+  const close = () => {
+    document.removeEventListener("pointerdown", onClickElsewhere, true);
+    t.remove();
+  };
+  // Start listening after the click that opened this notice has finished.
+  setTimeout(() => document.addEventListener("pointerdown", onClickElsewhere, true), 0);
+  setTimeout(close, toastDuration(message));
 }
 
 /* ---------------- Modal ---------------- */

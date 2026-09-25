@@ -18,11 +18,10 @@
 
       <!-- ===== Occupied state ===== -->
       <div id="occupied-view" style="display:none;">
-        <div class="callout status-bad" style="margin-bottom:18px;">
-          <img src="icons/circle-exclamation-solid.svg" alt="" />
-          <div>
-            <div class="status-label">Staging Table Status</div>
-            <div class="status-value">Occupied</div>
+        <div class="pill-row">
+          <div class="deadline-box">
+            <span class="alert-icon" aria-hidden="true"></span>
+            <span>Staging Table Status: <strong class="status-occupied">Occupied</strong></span>
           </div>
         </div>
 
@@ -74,8 +73,8 @@
             <svg class="pill-svg" viewBox="0 0 14 14" aria-hidden="true"><path d="M12 0C13.1031 0 14 0.896875 14 2V12C14 13.1031 13.1031 14 12 14H2L1.79688 13.9906C0.7875 13.8875 0 13.0344 0 12V2C0 0.896875 0.896875 0 2 0H12ZM2 9V12H6V9H2ZM8 9V12H12V9H8ZM2 7H6V4H2V7ZM8 7H12V4H8V7Z" fill="currentColor"/></svg>
             <span><strong>1,342</strong> records staged</span>
           </div>
-          <div class="deadline-box">
-            <img src="icons/Clock-grey.png" alt="Time" />
+          <div class="deadline-box" id="deadline-box">
+            <span class="clock-icon" role="img" aria-label="Time"></span>
             <span>Please finish using the staging table by <strong id="deadline-time"></strong></span>
           </div>
         </div>

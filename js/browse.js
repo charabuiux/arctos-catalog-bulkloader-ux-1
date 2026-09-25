@@ -4,7 +4,7 @@
 
 let records = [];
 let sortState = { key: "entered_to_bulk_date", dir: "asc" };
-let filterSelections = { enteredby: "Any", accn: "Any", guid_prefix: "Any" };
+let filterSelections = { enteredby: [], accn: [], guid_prefix: [] };
 let visibleExtras = new Set();
 let hiddenBaseCols = new Set();
 
@@ -17,6 +17,7 @@ function initBrowseEditPage() {
   renderFooter();
   hydrateIcons();
 
+  applyDefaultColumns();
   buildFilterLists();
   buildTableHead();
   renderRows();
@@ -53,58 +54,52 @@ function initBrowseEditPage() {
 
   document.getElementById("show-all-col-link").addEventListener("click", (e) => {
     e.preventDefault();
-    if (visibleExtras.size < EXTRA_COLUMNS.length) {
+    // Shows every column; when all are already showing, goes back to the default view.
+    if (hiddenBaseCols.size || visibleExtras.size < EXTRA_COLUMNS.length) {
+      hiddenBaseCols.clear();
       EXTRA_COLUMNS.forEach((c) => visibleExtras.add(c.key));
     } else {
-      visibleExtras.clear();
+      applyDefaultColumns();
     }
     buildTableHead();
     renderRows();
   });
 
-  const colChooser = document.getElementById("col-chooser");
   document.getElementById("customize-view-link").addEventListener("click", (e) => {
     e.preventDefault();
-    renderColChooser();
-    colChooser.classList.toggle("open");
-  });
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest("#col-chooser") && !e.target.closest("#customize-view-link")) {
-      colChooser.classList.remove("open");
-    }
+    toast("Customize view isn't available in the prototype yet.");
   });
 
   document.getElementById("delete-selected-link").addEventListener("click", (e) => {
     e.preventDefault();
     const selected = records.filter((r) => r.__selected);
     if (!selected.length) {
-      toast("Select one or more records first.");
+      toast("No rows are selected. Select one or more rows, then click delete selected.");
       return;
     }
-    if (confirm(`Delete ${selected.length} selected record${selected.length === 1 ? "" : "s"}?`)) {
-      records = records.filter((r) => !r.__selected);
-      buildFilterLists();
-      renderRows();
-      updateStepperCount();
-      toast(`${selected.length} record${selected.length === 1 ? "" : "s"} deleted.`);
-    }
+    selected.forEach((r) => (r.status = "DELETE"));
+    renderRows();
+    const n = selected.length;
+    toast(`Status updated to "DELETE" for ${n} row${n === 1 ? "" : "s"}. ${n === 1 ? "It" : "They"} will be deleted in about 30 minutes.`);
   });
 
   document.getElementById("publish-selected-btn").addEventListener("click", () => {
     const selected = records.filter((r) => r.__selected);
     if (!selected.length) {
-      toast("Select one or more records to publish.");
+      toast("No rows are selected. Select one or more rows, then click Publish Selected.");
       return;
     }
-    selected.forEach((r) => (r.status = "PUBLISHED"));
+    selected.forEach((r) => (r.status = "autoload"));
     renderRows();
-    toast(`${selected.length} record${selected.length === 1 ? "" : "s"} sent to the Publishing Queue.`);
+    const n = selected.length;
+    toast(
+      `Status updated to "autoload" for ${n} row${n === 1 ? "" : "s"}. Once the system publishes ${n === 1 ? "it, it" : "them, they"} will no longer appear in Browse & Edit.`
+    );
   });
 
   document.getElementById("publish-queue-link").addEventListener("click", (e) => {
     e.preventDefault();
-    const pending = records.filter((r) => r.status === "PUBLISHED").length;
-    toast(pending ? `Publishing Queue: ${pending} record${pending === 1 ? "" : "s"} awaiting publish.` : "Publishing Queue is empty.");
+    toast(`This would open the page currently titled "Cache Status". That page isn't available in the prototype yet.`);
   });
 
   document.getElementById("download-browse-csv").addEventListener("click", (e) => {
@@ -116,6 +111,14 @@ function initBrowseEditPage() {
   });
 }
 
+// Default view: show only columns that have a value in at least one record, and hide
+// columns that are empty in every record. The key column always shows.
+function applyDefaultColumns() {
+  const hasValues = (key) => records.some((r) => r[key] !== undefined && r[key] !== null && String(r[key]).trim() !== "");
+  hiddenBaseCols = new Set(RECORD_COLUMNS.filter((c) => c.key !== "key" && !hasValues(c.key)).map((c) => c.key));
+  visibleExtras = new Set(EXTRA_COLUMNS.filter((c) => hasValues(c.key)).map((c) => c.key));
+}
+
 function updateStepperCount() {
   Store.set("browse_count", records.length);
   const stepEl = document.querySelectorAll(".step-item")[3];
@@ -124,6 +127,8 @@ function updateStepperCount() {
   }
 }
 
+// Entered By, Accession and Collection lists allow several values each. An empty
+// selection means "Any". Clicking a value toggles it; clicking Any clears the others.
 function buildFilterLists() {
   const groups = [
     { id: "filter-enteredby", field: "enteredby" },
@@ -131,47 +136,116 @@ function buildFilterLists() {
     { id: "filter-collection", field: "guid_prefix" },
   ];
   groups.forEach(({ id, field }) => {
-    const values = ["Any", ...new Set(records.map((r) => r[field]).filter(Boolean))];
+    const values = [...new Set(records.map((r) => r[field]).filter(Boolean))];
     const ul = document.getElementById(id);
-    ul.innerHTML = values
-      .map((v) => `<li data-value="${v}" class="${filterSelections[field] === v ? "selected" : ""}">${v}</li>`)
-      .join("");
-    ul.querySelectorAll("li").forEach((li) => {
-      li.addEventListener("click", () => {
-        filterSelections[field] = li.dataset.value;
-        ul.querySelectorAll("li").forEach((x) => x.classList.remove("selected"));
-        li.classList.add("selected");
-      });
-    });
+    ul.setAttribute("role", "listbox");
+    ul.setAttribute("aria-multiselectable", "true");
+
+    const render = () => {
+      const chosen = filterSelections[field];
+      ul.innerHTML = ["Any", ...values]
+        .map((v) => {
+          const on = v === "Any" ? chosen.length === 0 : chosen.includes(v);
+          return `<li role="option" tabindex="0" aria-selected="${on}" data-value="${v}" class="${on ? "selected" : ""}">${v}</li>`;
+        })
+        .join("");
+    };
+
+    const toggle = (value) => {
+      if (value === "Any") {
+        filterSelections[field] = [];
+      } else if (filterSelections[field].includes(value)) {
+        filterSelections[field] = filterSelections[field].filter((v) => v !== value);
+      } else {
+        filterSelections[field] = [...filterSelections[field], value];
+      }
+      render();
+      ul.querySelector(`li[data-value="${CSS.escape(value)}"]`).focus({ preventScroll: true });
+    };
+
+    ul.onclick = (e) => {
+      const li = e.target.closest("li");
+      if (li) toggle(li.dataset.value);
+    };
+    ul.onkeydown = (e) => {
+      const li = e.target.closest("li");
+      if (li && (e.key === " " || e.key === "Enter")) {
+        e.preventDefault();
+        toggle(li.dataset.value);
+      }
+    };
+
+    render();
   });
 }
 
+// The Key(s) field holds a comma-separated list of keys.
+function parseKeyList(value) {
+  return value.split(",").map((k) => k.trim()).filter(Boolean);
+}
+
+// Row filter icon: adds that row's key to the Key(s) field. It doesn't apply the
+// filter, so the user can keep adding keys from other rows before clicking Apply Filter.
+function addKeyToFilter(key) {
+  const field = document.getElementById("ff-key");
+  const keys = parseKeyList(field.value);
+  if (keys.some((k) => k.toLowerCase() === key.toLowerCase())) {
+    toast(`${key} is already included in the Key(s) filter.`, "error");
+    return;
+  }
+  keys.push(key);
+  field.value = keys.join(", ");
+  toast(`Added ${key} to the Key(s) filter. Click Apply Filter to filter the table.`);
+}
+
+// The table only changes when Apply Filter or Clear Filter is clicked. Editing the
+// filter fields or lists (including the row filter icon) doesn't filter by itself,
+// even if the table redraws for another reason (add record, sort, etc.).
+const NO_FILTERS = { enteredby: [], accn: [], guid_prefix: [], keys: [], uuid: "", catnum: "", status: "" };
+let appliedFilters = { ...NO_FILTERS };
+
+function readFilterForm() {
+  return {
+    enteredby: [...filterSelections.enteredby],
+    accn: [...filterSelections.accn],
+    guid_prefix: [...filterSelections.guid_prefix],
+    keys: parseKeyList(document.getElementById("ff-key").value).map((k) => k.toLowerCase()),
+    uuid: document.getElementById("ff-uuid").value.trim().toLowerCase(),
+    catnum: document.getElementById("ff-catnum").value.trim().toLowerCase(),
+    status: document.getElementById("ff-status").value.trim().toLowerCase(),
+  };
+}
+
 function applyFilters() {
+  appliedFilters = readFilterForm();
   renderRows();
   toast("Filters applied.");
 }
 
 function clearFilters() {
-  filterSelections = { enteredby: "Any", accn: "Any", guid_prefix: "Any" };
+  filterSelections = { enteredby: [], accn: [], guid_prefix: [] };
   buildFilterLists();
   ["ff-key", "ff-uuid", "ff-catnum", "ff-status"].forEach((id) => {
     document.getElementById(id).value = "";
   });
+  appliedFilters = { ...NO_FILTERS };
   renderRows();
   toast("Filters cleared.");
 }
 
 function getVisibleRows() {
-  const keyQ = document.getElementById("ff-key").value.trim().toLowerCase();
-  const uuidQ = document.getElementById("ff-uuid").value.trim().toLowerCase();
-  const catQ = document.getElementById("ff-catnum").value.trim().toLowerCase();
-  const statusQ = document.getElementById("ff-status").value.trim().toLowerCase();
+  const f = appliedFilters;
+  const keyQs = f.keys;
+  const uuidQ = f.uuid;
+  const catQ = f.catnum;
+  const statusQ = f.status;
 
   let rows = records.filter((r) => {
-    if (filterSelections.enteredby !== "Any" && r.enteredby !== filterSelections.enteredby) return false;
-    if (filterSelections.accn !== "Any" && r.accn !== filterSelections.accn) return false;
-    if (filterSelections.guid_prefix !== "Any" && r.guid_prefix !== filterSelections.guid_prefix) return false;
-    if (keyQ && !r.key.toLowerCase().includes(keyQ)) return false;
+    for (const field of ["enteredby", "accn", "guid_prefix"]) {
+      const chosen = f[field];
+      if (chosen.length && !chosen.includes(r[field])) return false;
+    }
+    if (keyQs.length && !keyQs.some((k) => r.key.toLowerCase().includes(k))) return false;
     if (uuidQ && !r.uuid.toLowerCase().includes(uuidQ)) return false;
     if (catQ && !String(r.cat_num).toLowerCase().includes(catQ)) return false;
     if (statusQ && !r.status.toLowerCase().includes(statusQ)) return false;
@@ -197,14 +271,27 @@ function buildTableHead() {
 
   const headCells = [...cols, ...extras]
     .map((c) => {
-      if (!c.sortable) return `<th>${c.label}</th>`;
+      // The key column stays frozen on the left when the table scrolls sideways.
+      if (!c.sortable) return `<th${c.key === "key" ? ' class="col-key"' : ""}>${c.label}</th>`;
       const active = sortState.key === c.key;
       const icon = active ? (sortState.dir === "asc" ? "sort-ascending" : "sort-descending") : "sort-default";
-      return `<th class="sortable" data-key="${c.key}">${c.label} <img src="icons/${icon}.svg" alt="" /></th>`;
+      // Only the icon sorts, so the header text can be selected and copied.
+      return `<th class="sortable${c.key === "key" ? " col-key" : ""}" data-key="${c.key}">${c.label}<button type="button" class="sort-btn" aria-label="Sort by ${c.label}"><img src="icons/${icon}.svg" alt="" /></button></th>`;
     })
     .join("");
 
   row.innerHTML = `<th><input type="checkbox" id="select-all-records" /></th><th>actions</th>${headCells}`;
+
+  // Data columns only (not the checkbox or actions columns).
+  const total = RECORD_COLUMNS.length + EXTRA_COLUMNS.length;
+  const shown = cols.length + extras.length;
+  document.getElementById("col-count").textContent = `${shown} visible · ${total - shown} hidden`;
+
+  // Toggle link: "show all col." while any column is hidden, "hide empty col." once all are showing.
+  const allShown = shown === total;
+  document.getElementById("show-all-col-link").innerHTML = allShown
+    ? `${svgIcon("eye-slash-solid", 13)} hide empty col.`
+    : `${svgIcon("eye-solid", 13)} show all col.`;
 
   document.getElementById("select-all-records").addEventListener("change", (e) => {
     getVisibleRows().forEach((r) => (r.__selected = e.target.checked));
@@ -212,39 +299,12 @@ function buildTableHead() {
   });
 
   row.querySelectorAll("th.sortable").forEach((th) => {
-    th.addEventListener("click", () => {
+    th.querySelector(".sort-btn").addEventListener("click", () => {
       const key = th.dataset.key;
       if (sortState.key === key) {
         sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
       } else {
         sortState = { key, dir: "asc" };
-      }
-      buildTableHead();
-      renderRows();
-    });
-  });
-}
-
-function renderColChooser() {
-  const chooser = document.getElementById("col-chooser");
-  const allCols = [...RECORD_COLUMNS.map((c) => ({ key: c.key, label: c.label, base: true })), ...EXTRA_COLUMNS.map((c) => ({ ...c, base: false }))];
-  chooser.innerHTML = allCols
-    .map((c) => {
-      const checked = c.base ? !hiddenBaseCols.has(c.key) : visibleExtras.has(c.key);
-      return `<label><input type="checkbox" data-col="${c.key}" data-base="${c.base}" ${checked ? "checked" : ""} /> ${c.label}</label>`;
-    })
-    .join("");
-
-  chooser.querySelectorAll("input[type='checkbox']").forEach((cb) => {
-    cb.addEventListener("change", () => {
-      const key = cb.dataset.col;
-      const isBase = cb.dataset.base === "true";
-      if (isBase) {
-        if (cb.checked) hiddenBaseCols.delete(key);
-        else hiddenBaseCols.add(key);
-      } else {
-        if (cb.checked) visibleExtras.add(key);
-        else visibleExtras.delete(key);
       }
       buildTableHead();
       renderRows();
@@ -263,7 +323,7 @@ function renderRows() {
       const cells = cols
         .map((c) => {
           if (c.readonly) {
-            return `<td>${r[c.key] ?? ""}</td>`;
+            return `<td${c.key === "key" ? ' class="col-key"' : ""}>${r[c.key] ?? ""}</td>`;
           }
           return `<td contenteditable="true" data-record="${r.key}" data-field="${c.key}">${r[c.key] ?? ""}</td>`;
         })
@@ -277,7 +337,7 @@ function renderRows() {
           <td class="actions-cell">
             <button data-act="edit" data-key="${r.key}" title="Edit">${svgIcon("pen-to-square-solid", 14)}</button>
             <button data-act="copy" data-key="${r.key}" title="Duplicate">${svgIcon("copy-regular", 14)}</button>
-            <button data-act="filter" data-key="${r.key}" title="Filter by this key">${svgIcon("filter-solid", 14)}</button>
+            <button data-act="filter" data-key="${r.key}" title="Add to key filter" aria-label="Add to key filter">${svgIcon("filter-solid", 14)}</button>
           </td>
           ${cells}${extraCells}
         </tr>`;
@@ -303,8 +363,7 @@ function renderRows() {
       const key = btn.dataset.key;
       const rec = records.find((r) => r.key === key);
       if (btn.dataset.act === "edit") {
-        rec.__editable = !rec.__editable;
-        renderRows();
+        toast(`This would open the Enter / Edit Record page for ${key}. That page isn't available in the prototype yet.`);
       } else if (btn.dataset.act === "copy") {
         const n = records.length + 1;
         const clone = { ...rec, key: `key_${String(n).padStart(7, "0")}`, __selected: false, __editable: false };
@@ -315,8 +374,7 @@ function renderRows() {
         updateStepperCount();
         toast(`Duplicated ${key} as ${clone.key}.`);
       } else if (btn.dataset.act === "filter") {
-        document.getElementById("ff-key").value = key;
-        applyFilters();
+        addKeyToFilter(key);
       }
     });
   });
@@ -348,8 +406,8 @@ function initStickyHead() {
     if (e.target.matches("input[type='checkbox']")) {
       e.preventDefault();
       realTh.querySelector("input").click();
-    } else if (realTh.classList.contains("sortable")) {
-      realTh.click();
+    } else if (e.target.closest(".sort-btn")) {
+      realTh.querySelector(".sort-btn").click();
     }
   });
 

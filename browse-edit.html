@@ -40,18 +40,21 @@
         </div>
 
         <div class="notes-card">
-          <strong>NOTES</strong>
-          <ul>
-            <li>Click the filter icon to filter by key(s)</li>
-          </ul>
-          <div class="set-status-title">SET STATUS TO</div>
-          <div class="set-status-row"><strong>autoload</strong> publish record</div>
-          <div class="set-status-row"><strong>DELETE</strong> delete a record (~30 min delay, case-sensitive)</div>
+          <div class="notes-col">
+            <strong>NOTES</strong>
+            <ul>
+              <li>Click the filter icon to filter by key(s)</li>
+            </ul>
+          </div>
+          <div class="notes-col">
+            <div class="set-status-title">SET STATUS TO</div>
+            <div class="set-status-row"><strong>autoload</strong> publish record</div>
+            <div class="set-status-row"><strong>DELETE</strong> delete a record (~30 min delay)</div>
+          </div>
         </div>
 
         <div class="publish-actions">
           <div class="btn-row-top">
-            <a class="btn btn-outline" href="staging.html"><span class="ic" data-icon="arrow-left-solid" data-size="12"></span> Back</a>
             <button class="btn btn-primary" id="publish-selected-btn"><span class="ic" data-icon="upload-solid" data-size="13"></span> Publish Selected</button>
           </div>
           <a class="side-link" href="#" id="publish-queue-link"><span class="ic" data-icon="clipboard-check-solid" data-size="13"></span> Publishing Queue</a>
@@ -65,9 +68,9 @@
           <a href="#" id="delete-selected-link"><span class="ic" data-icon="trash-solid" data-size="13"></span> delete selected</a>
         </div>
         <div class="right" style="position:relative;">
+          <span class="col-count" id="col-count" aria-live="polite"></span>
           <a href="#" id="show-all-col-link"><span class="ic" data-icon="eye-solid" data-size="13"></span> show all col.</a>
           <a href="#" id="customize-view-link"><span class="ic" data-icon="sliders-solid" data-size="13"></span> customize view</a>
-          <div class="col-chooser" id="col-chooser"></div>
         </div>
       </div>
 

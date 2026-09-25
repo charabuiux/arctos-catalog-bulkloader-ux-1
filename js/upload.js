@@ -76,6 +76,7 @@ function initUploadPage() {
         openModal("modal-occupied");
       } else {
         Store.set("staging_status", "available");
+        Store.set("staging_uploaded_at", Date.now());
         Store.set("staging_validated", false);
         Store.remove("mismatch_pending");
         document.getElementById("modal-success-filename").textContent = fileName;
